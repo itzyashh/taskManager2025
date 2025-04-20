@@ -29,17 +29,18 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   }, []);
 
   const signIn = (user: User) => {
-    console.log('uo', user);
+    
     // AxiosIntance.defaults.headers.common['Authorization'] = `Bearer ${user.accessToken}`
     axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${user.token}`;
-    setSession({
+    const newSession: Session = {
       user,
       accessToken: user.token!,
-    });
-
-    if (session) {
-      alert('Session available')
-      saveSession(session);
+    };
+    setSession(newSession);
+    
+    
+    if (newSession) {
+      saveSession(newSession);
     }
   };
   const signOut = async () => {
