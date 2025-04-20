@@ -1,5 +1,7 @@
-import { createContext, PropsWithChildren, useContext, useState } from 'react';
+import { createContext, PropsWithChildren, useContext, useEffect, useState } from 'react';
 import { User } from '../types';
+import * as SecureStore from 'expo-secure-store';
+import { axiosInstance } from '@/config/AxiosInstance';
 
 type Session = {
   user: User;
@@ -8,7 +10,7 @@ type Session = {
 
 const AuthContext = createContext<{
   signOut: () => void;
-  signIn: (handle: string) => void;
+  signIn: (user: User) => void;
   session?: Session | null;
   isLoading: boolean;
 }>({
@@ -20,10 +22,43 @@ const AuthContext = createContext<{
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [session, setSession] = useState<Session>();
+  const [session, setSession] = useState<Session | null>(null);
 
-  const signIn = () => {};
-  const signOut = () => {};
+  useEffect(() => {
+    loadToken();
+  }, []);
+
+  const signIn = (user: User) => {
+    console.log('uo', user);
+    // AxiosIntance.defaults.headers.common['Authorization'] = `Bearer ${user.accessToken}`
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${user.token}`;
+    setSession({
+      user,
+      accessToken: user.token!,
+    });
+
+    if (session) {
+      alert('Session available')
+      saveSession(session);
+    }
+  };
+  const signOut = async () => {
+    axiosInstance.defaults.headers.common['Authorization'] = null
+    setSession(null)
+    await SecureStore.deleteItemAsync('session')
+  };
+
+  const saveSession = (session: Session) => {
+    SecureStore.setItem('session', JSON.stringify(session));
+  };
+  const loadToken = async () => {
+    const session = await SecureStore.getItemAsync('session');
+    if (session) {
+      setSession(JSON.parse(session));
+    } else {
+      setSession(null);
+    }
+  };
 
   return (
     <AuthContext.Provider

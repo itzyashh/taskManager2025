@@ -11,7 +11,7 @@ const ProtectedLayout = () => {
   if (!session) return <Redirect href="/login" />;
 
   return (
-    <Stack />
+    <Stack screenOptions={{headerShown: false}}/>
   );
 };
 
